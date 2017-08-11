@@ -19,6 +19,7 @@ interface ComponentState {
 };
 
 export default class Popup extends React.Component<PopupProps, ComponentState> {
+    content: HTMLElement;
     constructor(props) {
         super(props);
         this.state = {
@@ -29,12 +30,25 @@ export default class Popup extends React.Component<PopupProps, ComponentState> {
     }
 
     public render() {
+      if (this.props.children) {
+        return (
+          <div>
+            <div ref={ref => this.content=ref}>
+              {this.props.children}
+            </div>
+          </div>
+        )
+      }
       return null;
     }
 
     public componentDidMount() {
         if (this.props.popupProperties) {
-            this.state.view.popup.open(this.props.popupProperties);
+            let popupProps : PopupProperties = {
+              content: this.content as any,
+              ...this.props.popupProperties
+            }
+            this.state.view.popup.open(popupProps);
             this.setState({
                 mounted: true
             });

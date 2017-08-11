@@ -54,7 +54,7 @@ export default class Geometry extends React.Component<GeometryProps, ComponentSt
     public componentWillReceiveProps(nextProps: GeometryProps) {
       if (this.props.dataFlow === 'oneWay') {
         Object.keys(nextProps.geometryProperties).forEach((key) => {
-            if (this.state.instance.get(key)) {
+            if (this.state.instance.get(key) != nextProps.geometryProperties[key]) {
                 this.state.instance.set(key, nextProps.geometryProperties[key]);
             }
         });

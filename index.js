@@ -320,12 +320,17 @@ var Symbol = (function (_super) {
     };
     Symbol.prototype.componentWillReceiveProps = function (nextProps) {
         var _this = this;
+        var changed = false;
         if (this.props.dataFlow === 'oneWay') {
             Object.keys(nextProps.symbolProperties).forEach(function (key) {
-                if (_this.state.instance.get(key)) {
+                if (_this.props.symbolProperties[key] !== nextProps.symbolProperties[key]) {
                     _this.state.instance.set(key, nextProps.symbolProperties[key]);
+                    changed = true;
                 }
             });
+        }
+        if (changed) {
+            this.props.registerSymbol(this.state.instance);
         }
     };
     Symbol.prototype.createSymbol = function (Symbol) {
@@ -444,7 +449,7 @@ var Widget = (function (_super) {
     Widget.prototype.componentWillReceiveProps = function (nextProps) {
         var _this = this;
         Object.keys(nextProps.widgetProperties).forEach(function (key) {
-            if (_this.state.instance.get(key)) {
+            if (_this.state.instance.get(key) !== nextProps.widgetProperties[key]) {
                 _this.state.instance.set(key, nextProps.widgetProperties[key]);
             }
         });
@@ -756,16 +761,17 @@ var ArcView = (function (_super) {
         var _this = this;
         if (this.props.dataFlow === 'oneWay') {
             Object.keys(nextProps.userDefinedMapProperties).forEach(function (key) {
-                if (_this.state.map.get(key) && _this.state.map.get(key) !== nextProps.userDefinedMapProperties[key]) {
+                if (_this.state.map.get(key) !== nextProps.userDefinedMapProperties[key]) {
                     _this.state.map.set(key, nextProps.userDefinedMapProperties[key]);
                 }
             });
             Object.keys(nextProps.userDefinedViewProperties).forEach(function (key) {
-                if (_this.state.view.get(key) && _this.state.view.get(key) !== nextProps.userDefinedViewProperties[key]) {
-                    var changes = {};
-                    changes[key] = nextProps.userDefinedViewProperties[key];
-                    _this.state.view.set(changes);
+                if (_this.state.view.get(key) !== nextProps.userDefinedViewProperties[key]) {
+                    _this.state.view.set((_a = {},
+                        _a[key] = nextProps.userDefinedViewProperties[key],
+                        _a));
                 }
+                var _a;
             });
         }
     };
@@ -2155,7 +2161,7 @@ var Geometry = (function (_super) {
         var _this = this;
         if (this.props.dataFlow === 'oneWay') {
             Object.keys(nextProps.geometryProperties).forEach(function (key) {
-                if (_this.state.instance.get(key)) {
+                if (_this.state.instance.get(key) != nextProps.geometryProperties[key]) {
                     _this.state.instance.set(key, nextProps.geometryProperties[key]);
                 }
             });
@@ -2249,21 +2255,43 @@ var Graphic = (function (_super) {
         var _this = this;
         var childrenWithProps = React.Children.map(this.props.children, function (child) {
             var childEl = child;
-            return React.cloneElement(childEl, {
-                registerGeometry: _this.registerGeometry,
-                registerSymbol: _this.registerSymbol,
-            });
+            if (childEl) {
+                return React.cloneElement(childEl, {
+                    registerGeometry: _this.registerGeometry,
+                    registerSymbol: _this.registerSymbol,
+                });
+            }
+            else {
+                return null;
+            }
         });
         return (React.createElement("div", null, childrenWithProps));
     };
+    Graphic.prototype.removeGraphic = function () {
+        if (this.state.layer && this.state.layer.graphics !== undefined) {
+            this.state.layer.graphics.remove(this.state.instance);
+        }
+        else if (this.state.layer && this.state.layer.source !== undefined) {
+            this.state.layer.source.remove(this.state.instance);
+        }
+        else if (this.state.view) {
+            this.state.view.graphics.remove(this.state.instance);
+        }
+    };
     Graphic.prototype.renderGraphic = function () {
-        if (this.state.constructor && this.state.symbol && this.state.geometry) {
+        if (this.state.constructor && this.state.geometry) {
+            if (this.state.instance) {
+                this.removeGraphic();
+            }
             var graphic = new this.state.constructor(__assign({ geometry: this.state.geometry, symbol: this.state.symbol }, this.props.graphicProperties));
             this.setState({
                 instance: graphic
             });
-            if (this.state.layer) {
+            if (this.state.layer && this.state.layer.graphics !== undefined) {
                 this.state.layer.graphics.add(graphic);
+            }
+            else if (this.state.layer && this.state.layer.source !== undefined) {
+                this.state.layer.source.add(graphic);
             }
             else if (this.state.view) {
                 this.state.view.graphics.add(graphic);
@@ -2288,18 +2316,13 @@ var Graphic = (function (_super) {
         });
     };
     Graphic.prototype.componentWillUnmount = function () {
-        if (this.state.layer) {
-            this.state.layer.graphics.remove(this.state.instance);
-        }
-        else if (this.state.view) {
-            this.state.view.graphics.remove(this.state.instance);
-        }
+        this.removeGraphic();
     };
     Graphic.prototype.componentWillReceiveProps = function (nextProps) {
         var _this = this;
         if (nextProps.graphicProperties && this.props.dataFlow === 'oneWay') {
             Object.keys(nextProps.graphicProperties).forEach(function (key) {
-                if (_this.state.instance.get(key)) {
+                if (_this.props.graphicProperties[key] !== nextProps.graphicProperties[key]) {
                     _this.state.instance.set(key, nextProps.graphicProperties[key]);
                 }
             });
@@ -2307,11 +2330,19 @@ var Graphic = (function (_super) {
     };
     Graphic.prototype.registerSymbol = function (symbol) {
         this.setState({ symbol: symbol });
-        this.renderGraphic();
+        if (this.state.instance) {
+            this.removeGraphic();
+        }
+        // this.renderGraphic()
     };
     Graphic.prototype.registerGeometry = function (geometry) {
-        this.setState({ geometry: geometry });
-        this.renderGraphic();
+        if (!this.state.instance) {
+            this.setState({ geometry: geometry });
+            this.renderGraphic();
+        }
+        else {
+            this.state.instance.set('symbol', geometry);
+        }
     };
     return Graphic;
 }(React.Component));
@@ -2390,7 +2421,7 @@ var Layer = (function (_super) {
         var _this = this;
         if (this.props.dataFlow === 'oneWay') {
             Object.keys(nextProps.layerProperties).forEach(function (key) {
-                if (_this.state.instance.get(key)) {
+                if (_this.state.instance.get(key) !== nextProps.layerProperties[key]) {
                     _this.state.instance.set(key, nextProps.layerProperties[key]);
                 }
             });
@@ -2404,9 +2435,11 @@ var Layer = (function (_super) {
                 instance.on(_this.props.eventMap[key], _this.props[key]);
             }
         });
-        this.setState({ instance: instance });
+        this.setState({
+            instance: instance
+        });
         var parent = this.props.addLocation.reduce(function (p, c) { return p[c]; }, this.state);
-        parent.add(instance);
+        parent.add(instance, this.props.index);
     };
     return Layer;
 }(React.Component));
@@ -2515,6 +2548,14 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var __assign = (this && this.__assign) || Object.assign || function(t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+        s = arguments[i];
+        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+            t[p] = s[p];
+    }
+    return t;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(5);
 ;
@@ -2532,11 +2573,17 @@ var Popup = (function (_super) {
         return _this;
     }
     Popup.prototype.render = function () {
+        var _this = this;
+        if (this.props.children) {
+            return (React.createElement("div", null,
+                React.createElement("div", { ref: function (ref) { return _this.content = ref; } }, this.props.children)));
+        }
         return null;
     };
     Popup.prototype.componentDidMount = function () {
         if (this.props.popupProperties) {
-            this.state.view.popup.open(this.props.popupProperties);
+            var popupProps = __assign({ content: this.content }, this.props.popupProperties);
+            this.state.view.popup.open(popupProps);
             this.setState({
                 mounted: true
             });

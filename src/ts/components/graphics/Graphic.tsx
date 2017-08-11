@@ -6,7 +6,7 @@ export interface GraphicProps {
     children?: any;
     map?: __esri.Map;
     view?: __esri.SceneView | __esri.MapView;
-    layer?: __esri.GraphicsLayer;
+    layer?: __esri.GraphicsLayer | __esri.FeatureLayer;
     graphicProperties?: __esri.GraphicProperties;
     onLoad?: (instance: __esri.Graphic) => any;
     onFail?: (e: any) => any;
@@ -15,7 +15,7 @@ export interface GraphicProps {
 interface ComponentState {
     map?: __esri.Map;
     view?: __esri.View;
-    layer?: __esri.GraphicsLayer;
+    layer?: __esri.GraphicsLayer | __esri.FeatureLayer;
     constructor: __esri.GraphicConstructor;
     instance: __esri.Graphic;
     geometry: __esri.Geometry;
@@ -42,10 +42,14 @@ export default class Graphic extends React.Component<GraphicProps, ComponentStat
     public render() {
       const childrenWithProps = React.Children.map(this.props.children, (child) => {
           const childEl = child as React.ReactElement<any>
-          return React.cloneElement(childEl,  {
-              registerGeometry: this.registerGeometry,
-              registerSymbol: this.registerSymbol,
-          });
+          if (childEl) {
+              return React.cloneElement(childEl,  {
+                  registerGeometry: this.registerGeometry,
+                  registerSymbol: this.registerSymbol,
+              });
+          } else {
+              return null
+          }
       });
       return (
         <div>
@@ -54,8 +58,20 @@ export default class Graphic extends React.Component<GraphicProps, ComponentStat
       );
     }
 
+    public removeGraphic() {
+      if (this.state.layer && (this.state.layer as __esri.GraphicsLayer).graphics !== undefined) {
+        (this.state.layer as __esri.GraphicsLayer).graphics.remove(this.state.instance);
+      } else if (this.state.layer && (this.state.layer as __esri.FeatureLayer).source !== undefined) {
+        (this.state.layer as __esri.FeatureLayer).source.remove(this.state.instance);
+      } else if (this.state.view) {
+        this.state.view.graphics.remove(this.state.instance);
+      }
+    }
     public renderGraphic() {
-      if (this.state.constructor && this.state.symbol && this.state.geometry) {
+      if (this.state.constructor && this.state.geometry) {
+        if (this.state.instance) {
+          this.removeGraphic()
+        }
         const graphic = new this.state.constructor({
           geometry: this.state.geometry,
           symbol: this.state.symbol,
@@ -64,8 +80,10 @@ export default class Graphic extends React.Component<GraphicProps, ComponentStat
         this.setState({
           instance: graphic
         });
-        if (this.state.layer) {
-          this.state.layer.graphics.add(graphic);
+        if (this.state.layer && (this.state.layer as __esri.GraphicsLayer).graphics !== undefined) {
+          (this.state.layer as __esri.GraphicsLayer).graphics.add(graphic);
+        } else if (this.state.layer && (this.state.layer as __esri.FeatureLayer).source !== undefined) {
+          (this.state.layer as __esri.FeatureLayer).source.add(graphic);
         } else if (this.state.view) {
           this.state.view.graphics.add(graphic);
         }
@@ -91,17 +109,13 @@ export default class Graphic extends React.Component<GraphicProps, ComponentStat
     }
 
     public componentWillUnmount() {
-      if (this.state.layer) {
-        this.state.layer.graphics.remove(this.state.instance);
-      } else if (this.state.view) {
-        this.state.view.graphics.remove(this.state.instance);
-      }
+      this.removeGraphic()
     }
 
     public componentWillReceiveProps(nextProps: GraphicProps) {
         if (nextProps.graphicProperties && this.props.dataFlow === 'oneWay') {
           Object.keys(nextProps.graphicProperties).forEach((key) => {
-              if (this.state.instance.get(key)) {
+              if (this.props.graphicProperties[key] !== nextProps.graphicProperties[key]) {
                   this.state.instance.set(key, nextProps.graphicProperties[key]);
               }
           });
@@ -110,11 +124,18 @@ export default class Graphic extends React.Component<GraphicProps, ComponentStat
 
     public registerSymbol(symbol: __esri.Symbol) {
       this.setState({ symbol });
-      this.renderGraphic();
+      if (this.state.instance) {
+        this.removeGraphic()
+      }
+      // this.renderGraphic()
     }
 
     public registerGeometry(geometry: __esri.Geometry) {
-      this.setState({ geometry });
-      this.renderGraphic();
+      if (!this.state.instance) {
+        this.setState({ geometry });
+        this.renderGraphic();
+      } else {
+        this.state.instance.set('symbol', geometry)
+      }
     }
 }

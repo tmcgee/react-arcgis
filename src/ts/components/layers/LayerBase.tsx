@@ -18,6 +18,7 @@ export interface LayerProps {
     eventMap: {
       [propName: string]: string;
     };
+    index?: number;
 }
 
 interface ComponentState {
@@ -84,7 +85,7 @@ export default class Layer extends React.Component<LayerProps, ComponentState> {
     public componentWillReceiveProps(nextProps: LayerProps) {
       if (this.props.dataFlow === 'oneWay') {
         Object.keys(nextProps.layerProperties).forEach((key) => {
-            if (this.state.instance.get(key)) {
+            if (this.state.instance.get(key) !== nextProps.layerProperties[key]) {
                 this.state.instance.set(key, nextProps.layerProperties[key]);
             }
         });
@@ -98,8 +99,10 @@ export default class Layer extends React.Component<LayerProps, ComponentState> {
           instance.on(this.props.eventMap[key], this.props[key]);
         }
       });
-      this.setState({ instance });
+      this.setState({ 
+        instance
+      });
       const parent = this.props.addLocation.reduce((p, c) => p[c], this.state) as any;
-      parent.add(instance);
+      parent.add(instance, this.props.index);
     }
 };

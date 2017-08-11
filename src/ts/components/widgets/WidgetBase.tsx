@@ -74,7 +74,7 @@ export default class Widget extends React.Component<WidgetProps, ComponentState>
 
     componentWillReceiveProps(nextProps: WidgetProps) {
         Object.keys(nextProps.widgetProperties).forEach((key) => {
-            if (this.state.instance.get(key)) {
+            if (this.state.instance.get(key) !== nextProps.widgetProperties[key]) {
                 this.state.instance.set(key, nextProps.widgetProperties[key]);
             }
         });
