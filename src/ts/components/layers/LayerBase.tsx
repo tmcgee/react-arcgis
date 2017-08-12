@@ -85,7 +85,7 @@ export default class Layer extends React.Component<LayerProps, ComponentState> {
     public componentWillReceiveProps(nextProps: LayerProps) {
       if (this.props.dataFlow === 'oneWay') {
         Object.keys(nextProps.layerProperties).forEach((key) => {
-            if (this.state.instance.get(key) !== nextProps.layerProperties[key]) {
+            if (this.props.layerProperties[key] !== nextProps.layerProperties[key]) {
                 this.state.instance.set(key, nextProps.layerProperties[key]);
             }
         });

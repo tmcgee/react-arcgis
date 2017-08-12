@@ -318,6 +318,12 @@ var Symbol = (function (_super) {
             }
         });
     };
+    Symbol.prototype.componentWillUnmount = function () {
+        if (this.state.instance) {
+            this.props.registerSymbol(null);
+            this.state.instance.destroy();
+        }
+    };
     Symbol.prototype.componentWillReceiveProps = function (nextProps) {
         var _this = this;
         var changed = false;
@@ -2277,13 +2283,19 @@ var Graphic = (function (_super) {
         else if (this.state.view) {
             this.state.view.graphics.remove(this.state.instance);
         }
+        this.state.instance.destroy();
+        this.setState({
+            instance: null
+        });
     };
-    Graphic.prototype.renderGraphic = function () {
-        if (this.state.constructor && this.state.geometry) {
-            if (this.state.instance) {
+    Graphic.prototype.renderGraphic = function (stateUpdate) {
+        var newState = __assign({}, this.state, stateUpdate);
+        this.setState(newState);
+        if (newState.constructor && newState.geometry) {
+            if (newState.instance) {
                 this.removeGraphic();
             }
-            var graphic = new this.state.constructor(__assign({ geometry: this.state.geometry, symbol: this.state.symbol }, this.props.graphicProperties));
+            var graphic = new newState.constructor(__assign({ geometry: newState.geometry, symbol: newState.symbol, layer: this.state.layer }, this.props.graphicProperties));
             this.setState({
                 instance: graphic
             });
@@ -2307,8 +2319,7 @@ var Graphic = (function (_super) {
             'esri/Graphic'
         ]).then(function (_a) {
             var Graphic = _a[0];
-            _this.setState({ constructor: Graphic });
-            _this.renderGraphic();
+            _this.renderGraphic({ constructor: Graphic });
         }).catch(function (e) {
             if (_this.props.onFail) {
                 _this.props.onFail(e);
@@ -2329,20 +2340,10 @@ var Graphic = (function (_super) {
         }
     };
     Graphic.prototype.registerSymbol = function (symbol) {
-        this.setState({ symbol: symbol });
-        if (this.state.instance) {
-            this.removeGraphic();
-        }
-        // this.renderGraphic()
+        this.renderGraphic({ symbol: symbol });
     };
     Graphic.prototype.registerGeometry = function (geometry) {
-        if (!this.state.instance) {
-            this.setState({ geometry: geometry });
-            this.renderGraphic();
-        }
-        else {
-            this.state.instance.set('symbol', geometry);
-        }
+        this.renderGraphic({ geometry: geometry });
     };
     return Graphic;
 }(React.Component));
@@ -2421,7 +2422,7 @@ var Layer = (function (_super) {
         var _this = this;
         if (this.props.dataFlow === 'oneWay') {
             Object.keys(nextProps.layerProperties).forEach(function (key) {
-                if (_this.state.instance.get(key) !== nextProps.layerProperties[key]) {
+                if (_this.props.layerProperties[key] !== nextProps.layerProperties[key]) {
                     _this.state.instance.set(key, nextProps.layerProperties[key]);
                 }
             });

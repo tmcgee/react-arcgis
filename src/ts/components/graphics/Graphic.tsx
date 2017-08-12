@@ -66,17 +66,29 @@ export default class Graphic extends React.Component<GraphicProps, ComponentStat
       } else if (this.state.view) {
         this.state.view.graphics.remove(this.state.instance);
       }
+      this.state.instance.destroy()
+      this.setState({
+        instance: null
+      })
     }
-    public renderGraphic() {
-      if (this.state.constructor && this.state.geometry) {
-        if (this.state.instance) {
+    public renderGraphic(stateUpdate) {
+      const newState = {
+        ...this.state,
+        ...stateUpdate
+      }
+      this.setState(newState);
+
+      if (newState.constructor && newState.geometry) {
+        if (newState.instance) {
           this.removeGraphic()
         }
-        const graphic = new this.state.constructor({
-          geometry: this.state.geometry,
-          symbol: this.state.symbol,
+
+        const graphic = new newState.constructor({
+          geometry: newState.geometry,
+          symbol: newState.symbol,
+          layer: this.state.layer,
           ...this.props.graphicProperties
-        });
+        })
         this.setState({
           instance: graphic
         });
@@ -99,8 +111,7 @@ export default class Graphic extends React.Component<GraphicProps, ComponentStat
       ]).then(([
         Graphic
       ]) => {
-        this.setState({ constructor: Graphic });
-        this.renderGraphic();
+        this.renderGraphic({ constructor: Graphic });
       }).catch((e) => {
         if (this.props.onFail) {
           this.props.onFail(e);
@@ -123,19 +134,10 @@ export default class Graphic extends React.Component<GraphicProps, ComponentStat
     }
 
     public registerSymbol(symbol: __esri.Symbol) {
-      this.setState({ symbol });
-      if (this.state.instance) {
-        this.removeGraphic()
-      }
-      // this.renderGraphic()
+      this.renderGraphic({ symbol })
     }
 
     public registerGeometry(geometry: __esri.Geometry) {
-      if (!this.state.instance) {
-        this.setState({ geometry });
-        this.renderGraphic();
-      } else {
-        this.state.instance.set('symbol', geometry)
-      }
+      this.renderGraphic({ geometry })
     }
 }

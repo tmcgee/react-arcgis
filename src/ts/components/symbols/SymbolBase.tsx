@@ -50,6 +50,12 @@ export default class Symbol extends React.Component<SymbolProps, ComponentState>
       }
     });
   }
+  public componentWillUnmount() {
+    if (this.state.instance) {
+      this.props.registerSymbol(null);
+      this.state.instance.destroy();
+    }
+  }
 
   public componentWillReceiveProps(nextProps: SymbolProps) {
       let changed = false
