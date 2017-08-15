@@ -327,7 +327,7 @@ var Symbol = (function (_super) {
     Symbol.prototype.componentWillReceiveProps = function (nextProps) {
         var _this = this;
         var changed = false;
-        if (this.props.dataFlow === 'oneWay') {
+        if (this.props.dataFlow === 'oneWay' && this.state.instance) {
             Object.keys(nextProps.symbolProperties).forEach(function (key) {
                 if (_this.props.symbolProperties[key] !== nextProps.symbolProperties[key]) {
                     _this.state.instance.set(key, nextProps.symbolProperties[key]);
@@ -2289,6 +2289,7 @@ var Graphic = (function (_super) {
         });
     };
     Graphic.prototype.renderGraphic = function (stateUpdate) {
+        if (stateUpdate === void 0) { stateUpdate = {}; }
         var newState = __assign({}, this.state, stateUpdate);
         this.setState(newState);
         if (newState.constructor && newState.geometry) {
@@ -2300,13 +2301,13 @@ var Graphic = (function (_super) {
                 instance: graphic
             });
             if (this.state.layer && this.state.layer.graphics !== undefined) {
-                this.state.layer.graphics.add(graphic);
+                this.state.layer.graphics.add(graphic, this.props.index);
             }
             else if (this.state.layer && this.state.layer.source !== undefined) {
-                this.state.layer.source.add(graphic);
+                this.state.layer.source.add(graphic, this.props.index);
             }
             else if (this.state.view) {
-                this.state.view.graphics.add(graphic);
+                this.state.view.graphics.add(graphic, this.props.index);
             }
             if (this.props.onLoad) {
                 this.props.onLoad(graphic);
@@ -2334,7 +2335,12 @@ var Graphic = (function (_super) {
         if (nextProps.graphicProperties && this.props.dataFlow === 'oneWay') {
             Object.keys(nextProps.graphicProperties).forEach(function (key) {
                 if (_this.props.graphicProperties[key] !== nextProps.graphicProperties[key]) {
-                    _this.state.instance.set(key, nextProps.graphicProperties[key]);
+                    if (key === 'index') {
+                        _this.renderGraphic();
+                    }
+                    else {
+                        _this.state.instance.set(key, nextProps.graphicProperties[key]);
+                    }
                 }
             });
         }
@@ -2585,6 +2591,9 @@ var Popup = (function (_super) {
         if (this.props.popupProperties) {
             var popupProps = __assign({ content: this.content }, this.props.popupProperties);
             this.state.view.popup.open(popupProps);
+            if (this.props.onTriggerAction) {
+                this.state.view.popup.on('trigger-action', this.props.onTriggerAction);
+            }
             this.setState({
                 mounted: true
             });

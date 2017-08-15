@@ -6,6 +6,7 @@ export interface PopupProps {
     map?: __esri.Map;
     view?: __esri.SceneView | __esri.MapView;
     popupProperties: PopupProperties;
+    onTriggerAction?: (e:any) => any;
 };
 
 interface PopupProperties extends __esri.PopupOpenOptions {
@@ -49,6 +50,9 @@ export default class Popup extends React.Component<PopupProps, ComponentState> {
               ...this.props.popupProperties
             }
             this.state.view.popup.open(popupProps);
+            if (this.props.onTriggerAction) {
+              this.state.view.popup.on('trigger-action', this.props.onTriggerAction);
+            }
             this.setState({
                 mounted: true
             });

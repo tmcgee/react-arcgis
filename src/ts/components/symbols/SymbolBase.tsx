@@ -59,7 +59,7 @@ export default class Symbol extends React.Component<SymbolProps, ComponentState>
 
   public componentWillReceiveProps(nextProps: SymbolProps) {
       let changed = false
-      if (this.props.dataFlow === 'oneWay') {
+      if (this.props.dataFlow === 'oneWay' && this.state.instance) {
         Object.keys(nextProps.symbolProperties).forEach((key) => {
             if (this.props.symbolProperties[key] !== nextProps.symbolProperties[key]) {
                 this.state.instance.set(key, nextProps.symbolProperties[key]);

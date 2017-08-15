@@ -10,6 +10,7 @@ export interface GraphicProps {
     graphicProperties?: __esri.GraphicProperties;
     onLoad?: (instance: __esri.Graphic) => any;
     onFail?: (e: any) => any;
+    index?: number;
 }
 
 interface ComponentState {
@@ -71,7 +72,7 @@ export default class Graphic extends React.Component<GraphicProps, ComponentStat
         instance: null
       })
     }
-    public renderGraphic(stateUpdate) {
+    public renderGraphic(stateUpdate = {}) {
       const newState = {
         ...this.state,
         ...stateUpdate
@@ -93,11 +94,11 @@ export default class Graphic extends React.Component<GraphicProps, ComponentStat
           instance: graphic
         });
         if (this.state.layer && (this.state.layer as __esri.GraphicsLayer).graphics !== undefined) {
-          (this.state.layer as __esri.GraphicsLayer).graphics.add(graphic);
+          (this.state.layer as __esri.GraphicsLayer).graphics.add(graphic, this.props.index);
         } else if (this.state.layer && (this.state.layer as __esri.FeatureLayer).source !== undefined) {
-          (this.state.layer as __esri.FeatureLayer).source.add(graphic);
+          (this.state.layer as __esri.FeatureLayer).source.add(graphic, this.props.index);
         } else if (this.state.view) {
-          this.state.view.graphics.add(graphic);
+          this.state.view.graphics.add(graphic, this.props.index);
         }
         if (this.props.onLoad) {
           this.props.onLoad(graphic);
@@ -127,7 +128,11 @@ export default class Graphic extends React.Component<GraphicProps, ComponentStat
         if (nextProps.graphicProperties && this.props.dataFlow === 'oneWay') {
           Object.keys(nextProps.graphicProperties).forEach((key) => {
               if (this.props.graphicProperties[key] !== nextProps.graphicProperties[key]) {
-                  this.state.instance.set(key, nextProps.graphicProperties[key]);
+                  if (key === 'index') {
+                    this.renderGraphic()
+                  } else {
+                    this.state.instance.set(key, nextProps.graphicProperties[key]);
+                  }
               }
           });
         }
