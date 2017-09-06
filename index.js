@@ -2426,7 +2426,7 @@ var Layer = (function (_super) {
     };
     Layer.prototype.componentWillReceiveProps = function (nextProps) {
         var _this = this;
-        if (this.props.dataFlow === 'oneWay') {
+        if (this.props.dataFlow === 'oneWay' && this.state.instance) {
             Object.keys(nextProps.layerProperties).forEach(function (key) {
                 if (_this.props.layerProperties[key] !== nextProps.layerProperties[key]) {
                     _this.state.instance.set(key, nextProps.layerProperties[key]);
