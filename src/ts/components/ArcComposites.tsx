@@ -53,7 +53,7 @@ export const MapBase = (props: MapBaseProps) => (
                         typedView.on(eventMap[key], props[key]);
                     }
                 });
-                view.then(() => {
+                view.when(() => {
                     resolve({ map, view });
                 }, (err) => {
                     reject(err);
