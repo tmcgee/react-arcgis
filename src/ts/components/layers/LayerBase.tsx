@@ -1,4 +1,4 @@
-import { esriPromise } from 'esri-promise';
+import { loadModules } from 'esri-loader';
 import * as React from 'react';
 
 export interface LayerProps {
@@ -23,17 +23,16 @@ export interface LayerProps {
 
 interface ComponentState {
     scriptUri: string;
-    map: __esri.Map;
-    view: __esri.View;
-    instance: __esri.Layer;
+    map?: __esri.Map;
+    view?: __esri.View;
+    instance?: __esri.Layer;
     status: string;
 }
 
 export default class Layer extends React.Component<LayerProps, ComponentState> {
-    constructor(props) {
+    constructor(props: LayerProps) {
         super(props);
         this.state = {
-            instance: null,
             map: this.props.map,
             scriptUri: this.props.scriptUri,
             status: 'loading',
@@ -60,18 +59,20 @@ export default class Layer extends React.Component<LayerProps, ComponentState> {
     }
 
     public componentWillUnmount() {
-      this.state.map.remove(this.state.instance);
+      if (this.state.map && this.state.instance) {
+        this.state.map.remove(this.state.instance);
+      }
     }
 
     public componentDidMount() {
-      esriPromise([
+      loadModules([
         this.props.scriptUri
       ]).then(([
         Layer
       ]) => {
         this.renderLayer(Layer);
         this.setState({ status: 'loaded' });
-        if (this.props.onLoad) {
+        if (this.props.onLoad && this.state.instance) {
           this.props.onLoad(this.state.instance);
         }
       }).catch((e) => {
@@ -83,11 +84,13 @@ export default class Layer extends React.Component<LayerProps, ComponentState> {
     }
 
     public componentWillReceiveProps(nextProps: LayerProps) {
-      if (this.props.dataFlow === 'oneWay' && this.state.instance) {
+      if (this.props.dataFlow === 'oneWay' && this.state.instance && nextProps.layerProperties) {
         Object.keys(nextProps.layerProperties).forEach((key) => {
+          if (this.props.layerProperties && this.state.instance && nextProps && nextProps.layerProperties) {
             if (this.props.layerProperties[key] !== nextProps.layerProperties[key]) {
                 this.state.instance.set(key, nextProps.layerProperties[key]);
             }
+          }
         });
       }
     }
@@ -99,7 +102,7 @@ export default class Layer extends React.Component<LayerProps, ComponentState> {
           instance.on(this.props.eventMap[key], this.props[key]);
         }
       });
-      this.setState({ 
+      this.setState({
         instance
       });
       const parent = this.props.addLocation.reduce((p, c) => p[c], this.state) as any;

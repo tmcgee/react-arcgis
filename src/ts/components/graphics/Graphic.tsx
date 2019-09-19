@@ -1,4 +1,4 @@
-import { esriPromise } from 'esri-promise';
+import { loadModules } from 'esri-loader';
 import * as React from 'react';
 
 export interface GraphicProps {
@@ -17,22 +17,19 @@ interface ComponentState {
     map?: __esri.Map;
     view?: __esri.View;
     layer?: __esri.GraphicsLayer | __esri.FeatureLayer;
-    constructor: __esri.GraphicConstructor;
-    instance: __esri.Graphic;
-    geometry: __esri.Geometry;
-    symbol: __esri.Symbol;
+    constructor?: __esri.GraphicConstructor;
+    instance?: __esri.Graphic;
+    geometry?: __esri.Geometry;
+    symbol?: __esri.Symbol;
 }
 
 export default class Graphic extends React.Component<GraphicProps, ComponentState> {
-    constructor(props) {
+    constructor(props: GraphicProps) {
         super(props);
         this.state = {
-            constructor: null,
-            geometry: null,
-            instance: null,
+            constructor: undefined,
             layer: this.props.layer,
             map: this.props.map,
-            symbol: null,
             view: this.props.view,
         };
         this.renderGraphic = this.renderGraphic.bind(this);
@@ -60,16 +57,22 @@ export default class Graphic extends React.Component<GraphicProps, ComponentStat
     }
 
     public removeGraphic() {
-      if (this.state.layer && (this.state.layer as __esri.GraphicsLayer).graphics !== undefined) {
-        (this.state.layer as __esri.GraphicsLayer).graphics.remove(this.state.instance);
-      } else if (this.state.layer && (this.state.layer as __esri.FeatureLayer).source !== undefined) {
-        (this.state.layer as __esri.FeatureLayer).source.remove(this.state.instance);
-      } else if (this.state.view) {
-        this.state.view.graphics.remove(this.state.instance);
+      if (this.state.instance) {
+        if (this.state.layer && (this.state.layer as __esri.GraphicsLayer).graphics !== undefined) {
+          (this.state.layer as __esri.GraphicsLayer).graphics.remove(this.state.instance);
+        } else if (this.state.layer && (this.state.layer as __esri.FeatureLayer).source !== undefined) {
+          (this.state.layer as __esri.FeatureLayer).applyEdits({
+            deleteFeatures: [this.state.instance]
+          }).catch((error) => {
+              console.error('[ Graphic.removeGraphic applyEdits ] ERROR: ', error);
+          })
+        } else if (this.state.view) {
+          this.state.view.graphics.remove(this.state.instance);
+        }
+        this.state.instance.destroy()
       }
-      this.state.instance.destroy()
       this.setState({
-        instance: null
+        instance: undefined
       })
     }
     public renderGraphic(stateUpdate = {}) {
@@ -80,7 +83,7 @@ export default class Graphic extends React.Component<GraphicProps, ComponentStat
       this.setState(newState);
 
       if (newState.constructor && newState.geometry) {
-        if (newState.instance) {
+        if (newState.instance && this.state.layer && (this.state.layer as __esri.FeatureLayer).applyEdits === undefined) {
           this.removeGraphic()
         }
 
@@ -95,8 +98,13 @@ export default class Graphic extends React.Component<GraphicProps, ComponentStat
         });
         if (this.state.layer && (this.state.layer as __esri.GraphicsLayer).graphics !== undefined) {
           (this.state.layer as __esri.GraphicsLayer).graphics.add(graphic, this.props.index);
-        } else if (this.state.layer && (this.state.layer as __esri.FeatureLayer).source !== undefined) {
-          (this.state.layer as __esri.FeatureLayer).source.add(graphic, this.props.index);
+        } else if (this.state.layer && (this.state.layer as __esri.FeatureLayer).applyEdits !== undefined) {
+          (this.state.layer as __esri.FeatureLayer).applyEdits({
+            addFeatures: (newState.instance) ? [] : [graphic],
+            updateFeatures: (newState.instance) ? [graphic] : [],
+          }).catch((error: any) => {
+            console.error('[ Graphic.renderGraphic applyEdits ] ERROR: ', error);
+          });
         } else if (this.state.view) {
           this.state.view.graphics.add(graphic, this.props.index);
         }
@@ -107,7 +115,7 @@ export default class Graphic extends React.Component<GraphicProps, ComponentStat
     }
 
     public componentDidMount() {
-      esriPromise([
+      loadModules([
         'esri/Graphic'
       ]).then(([
         Graphic
@@ -126,15 +134,29 @@ export default class Graphic extends React.Component<GraphicProps, ComponentStat
 
     public componentWillReceiveProps(nextProps: GraphicProps) {
         if (nextProps.graphicProperties && this.props.dataFlow === 'oneWay') {
+          let updatedProp = false;
           Object.keys(nextProps.graphicProperties).forEach((key) => {
+            if (this.props.graphicProperties && nextProps.graphicProperties) {
               if (this.props.graphicProperties[key] !== nextProps.graphicProperties[key]) {
                   if (key === 'index') {
                     this.renderGraphic()
                   } else {
-                    this.state.instance.set(key, nextProps.graphicProperties[key]);
+                    if (this.state.instance) {
+                      this.state.instance.set(key, nextProps.graphicProperties[key]);
+                    }
+                    updatedProp = true;
                   }
               }
+            }
           });
+
+          if (updatedProp && this.state.layer && (this.state.layer as __esri.FeatureLayer).applyEdits !== undefined) {
+            (this.state.layer as __esri.FeatureLayer).applyEdits({
+              updateFeatures: (this.state.instance) ? [this.state.instance] : []
+            }).catch((error: any) => {
+              console.error('[ Graphic.componentWillReceiveProps applyEdits ] ERROR: ', error);
+            });
+          }
         }
     }
 

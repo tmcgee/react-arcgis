@@ -19,7 +19,6 @@ import {
   SearchProps,
   SizeSliderProps,
   TrackProps,
-  UnivariateColorSizeSliderProps,
   ZoomProps,
 } from './WidgetInterfaces';
 
@@ -215,20 +214,6 @@ export const Track = (props: TrackProps) => (
     eventMap={{
       onTrack: 'track',
       onTrackError: 'track-error'
-    }}
-  />
-);
-
-export const UnivariateColorSizeSlider = (props: UnivariateColorSizeSliderProps) => (
-  <Widget
-    {...props}
-    dataFlow={ props.dataFlow === 'oneWay' ? 'oneWay' : 'oneTime' }
-    scriptUri="esri/widgets/UnvariateColorSizeSlider"
-    widgetProperties={{...props.widgetProperties}}
-    eventMap={{
-      onDataChange: 'data-change',
-      onDataValueChange: 'data-value-change',
-      onHandleValueChange: 'handle-value-change'
     }}
   />
 );

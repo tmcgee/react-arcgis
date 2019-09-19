@@ -1,4 +1,4 @@
-import { esriPromise } from 'esri-promise';
+import { loadModules } from 'esri-loader';
 import * as React from 'react';
 
 export interface GeometryProps {
@@ -15,16 +15,16 @@ export interface GeometryProps {
 
 interface ComponentState {
   scriptUri: string;
-  graphic: __esri.Graphic;
-  instance: __esri.Geometry;
+  graphic?: __esri.Graphic;
+  instance?: __esri.Geometry;
 }
 
 export default class Geometry extends React.Component<GeometryProps, ComponentState> {
-    constructor(props) {
+    constructor(props: GeometryProps) {
         super(props);
         this.state = {
             graphic: this.props.graphic,
-            instance: null,
+            instance: undefined,
             scriptUri: this.props.scriptUri,
         }
         this.createGeometry = this.createGeometry.bind(this);
@@ -35,13 +35,13 @@ export default class Geometry extends React.Component<GeometryProps, ComponentSt
     }
 
     public componentDidMount() {
-      esriPromise([
+      loadModules([
         this.props.scriptUri
       ]).then(([
         Geometry
       ]) => {
         this.createGeometry(Geometry);
-        if (this.props.onLoad) {
+        if (this.props.onLoad && this.state.instance) {
           this.props.onLoad(this.state.instance);
         }
       }).catch((e) => {
@@ -52,10 +52,12 @@ export default class Geometry extends React.Component<GeometryProps, ComponentSt
     }
 
     public componentWillReceiveProps(nextProps: GeometryProps) {
-      if (this.props.dataFlow === 'oneWay') {
-        Object.keys(nextProps.geometryProperties).forEach((key) => {
-            if (this.state.instance.get(key) != nextProps.geometryProperties[key]) {
+      if (this.props.dataFlow === 'oneWay' && this.state.instance && nextProps.geometryProperties) {
+          Object.keys(nextProps.geometryProperties).forEach((key: string) => {
+            if (this.state.instance && nextProps && nextProps.geometryProperties) {
+              if (this.state.instance.get(key) != nextProps.geometryProperties[key]) {
                 this.state.instance.set(key, nextProps.geometryProperties[key]);
+              }
             }
         });
       }
@@ -64,6 +66,8 @@ export default class Geometry extends React.Component<GeometryProps, ComponentSt
     private createGeometry(Geometry: __esri.GeometryConstructor) {
       const instance = new Geometry(this.props.geometryProperties);
       this.setState({ instance });
-      this.props.registerGeometry(instance);
+      if (this.props.registerGeometry) {
+        this.props.registerGeometry(instance);
+      }
     }
 }

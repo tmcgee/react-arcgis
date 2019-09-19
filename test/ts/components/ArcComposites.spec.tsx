@@ -10,7 +10,7 @@ export const MapBaseTests = () => (
         let mapBase;
         describe('as a shallow component', () => {
             beforeEach(() => {
-                mapBase = shallow(<MapBase scriptUri={['foo', 'bar']} dataFlow="oneTime" userDefinedMapProperties={{}} userDefinedViewProperties={{}} />);
+                mapBase = shallow(<MapBase scriptUri={['foo', 'bar']} />);
             });
 
             it('should exist', () => {
@@ -21,7 +21,7 @@ export const MapBaseTests = () => (
         describe('as a mounted component', () => {
             beforeEach(() => {
                 sinon.spy(ArcView.prototype, 'componentDidMount');
-                mapBase = mount(<MapBase scriptUri={['foo', 'bar']} dataFlow="oneTime" userDefinedMapProperties={{}} userDefinedViewProperties={{}} />);
+                mapBase = mount(<MapBase scriptUri={['foo', 'bar']} />);
             });
 
             it('should call componentDidMount', () => {
@@ -36,11 +36,12 @@ export const MapBaseTests = () => (
                     });
 
                     beforeEach(() => {
-                        mapBase = mount(<MapBase scriptUri={['foo', 'bar']} dataFlow="oneTime" userDefinedMapProperties={{}} userDefinedViewProperties={{}} />);
+                        mapBase = mount(<MapBase scriptUri={['foo', 'bar']} />);
                     });
 
                     it('should display the loaded state of the application', (done) => {
                         setTimeout(() => {
+                            mapBase.update();
                             expect(mapBase.find('#react-arcgis-fail-text')).to.have.length(0);
                             expect(mapBase.find('#react-arcgis-loading-text')).to.have.length(0);
                             done();
@@ -50,11 +51,12 @@ export const MapBaseTests = () => (
                     describe('the user has included custom event handlers', () => {
                         const handler = () => 'foobar';
                         beforeEach(() => {
-                            mapBase = mount(<MapBase scriptUri={['foo', 'bar']} dataFlow="oneTime" userDefinedMapProperties={{}} userDefinedViewProperties={{}} onMouseWheel={handler} />);
+                            mapBase = mount(<MapBase scriptUri={['foo', 'bar']} onMouseWheel={handler} />);
                         });
 
                         it('should display the loaded state of the application', (done) => {
                             setTimeout(() => {
+                                mapBase.update();
                                 expect(mapBase.find('#react-arcgis-fail-text')).to.have.length(0);
                                 expect(mapBase.find('#react-arcgis-loading-text')).to.have.length(0);
                                 done();
@@ -82,11 +84,12 @@ export const MapBaseTests = () => (
                     });
 
                     beforeEach(() => {
-                        mapBase = mount(<MapBase scriptUri={['foo', 'bar']} dataFlow="oneTime" userDefinedMapProperties={{}} userDefinedViewProperties={{}} />);
+                        mapBase = mount(<MapBase scriptUri={['foo', 'bar']} />);
                     });
 
                     it('should display the failed state of the application', (done) => {
                         setTimeout(() => {
+                            mapBase.update();
                             expect(mapBase.find('#react-arcgis-fail-text')).to.have.length(1);
                             expect(mapBase.find('#react-arcgis-loading-text')).to.have.length(0);
                             done();
@@ -107,11 +110,12 @@ export const MapBaseTests = () => (
                     });
 
                     beforeEach(() => {
-                        mapBase = mount(<MapBase scriptUri={['foo', 'bar']} dataFlow="oneTime" userDefinedMapProperties={{}} userDefinedViewProperties={{}} />);
+                        mapBase = mount(<MapBase scriptUri={['foo', 'bar']} />);
                     });
 
                     it('should display the failed state for the application', (done) => {
                         setTimeout(() => {
+                            mapBase.update();
                             expect(mapBase.find('#react-arcgis-fail-text')).to.have.length(1);
                             done();
                         }, 1);
@@ -136,7 +140,7 @@ export const WebBaseTests = () => (
         let webBase;
         describe('as a shallow component', () => {
             beforeEach(() => {
-                webBase = shallow(<WebBase id="foobar" scriptUri={['foo', 'bar']} dataFlow="oneTime" userDefinedMapProperties={{}} userDefinedViewProperties={{}} />);
+                webBase = shallow(<WebBase id="foobar" scriptUri={['foo', 'bar']} />);
             });
 
             it('should exist', () => {
@@ -147,7 +151,7 @@ export const WebBaseTests = () => (
         describe('as a mounted component', () => {
             beforeEach(() => {
                 sinon.spy(ArcView.prototype, 'componentDidMount');
-                webBase = mount(<WebBase id="foobar" scriptUri={['foo', 'bar']} dataFlow="oneTime" userDefinedMapProperties={{}} userDefinedViewProperties={{}} />);
+                webBase = mount(<WebBase id="foobar" scriptUri={['foo', 'bar']} />);
             });
 
             it('should call componentDidMount', () => {
@@ -161,11 +165,12 @@ export const WebBaseTests = () => (
                 });
 
                 beforeEach(() => {
-                    webBase = mount(<WebBase id="foobar" scriptUri={['foo', 'bar']} dataFlow="oneTime" userDefinedMapProperties={{}} userDefinedViewProperties={{}} />);
+                    webBase = mount(<WebBase id="foobar" scriptUri={['foo', 'bar']} />);
                 });
 
                 it('should display the loaded state of the application', (done) => {
                     setTimeout(() => {
+                        webBase.update();
                         expect(webBase.find('#react-arcgis-fail-text')).to.have.length(0);
                         expect(webBase.find('#react-arcgis-loading-text')).to.have.length(0);
                         done();
@@ -175,11 +180,12 @@ export const WebBaseTests = () => (
                 describe('the user has included custom event handlers', () => {
                     const handler = () => 'foobar';
                     beforeEach(() => {
-                        webBase = mount(<WebBase id="foobar" scriptUri={['foo', 'bar']} onMouseWheel={handler} dataFlow="oneTime" userDefinedMapProperties={{}} userDefinedViewProperties={{}} />);
+                        webBase = mount(<WebBase id="foobar" scriptUri={['foo', 'bar']} onMouseWheel={handler} />);
                     });
 
                     it('should display the loaded state of the application', (done) => {
                         setTimeout(() => {
+                            webBase.update();
                             expect(webBase.find('#react-arcgis-fail-text')).to.have.length(0);
                             expect(webBase.find('#react-arcgis-loading-text')).to.have.length(0);
                             done();
@@ -206,11 +212,12 @@ export const WebBaseTests = () => (
                 });
 
                 beforeEach(() => {
-                    webBase = mount(<WebBase id="foobar" scriptUri={['foo', 'bar']} dataFlow="oneTime" userDefinedMapProperties={{}} userDefinedViewProperties={{}} />);
+                    webBase = mount(<WebBase id="foobar" scriptUri={['foo', 'bar']} />);
                 });
 
                 it('should display the failed state for the application', (done) => {
                     setTimeout(() => {
+                        webBase.update();
                         expect(webBase.find('#react-arcgis-fail-text')).to.have.length(1);
                         done();
                     }, 1);
@@ -229,11 +236,12 @@ export const WebBaseTests = () => (
                 });
 
                 beforeEach(() => {
-                    webBase = mount(<WebBase id="foobar" scriptUri={['foo', 'bar']} dataFlow="oneTime" userDefinedMapProperties={{}} userDefinedViewProperties={{}} />);
+                    webBase = mount(<WebBase id="foobar" scriptUri={['foo', 'bar']} />);
                 });
 
                 it('should display the failed state for the application', (done) => {
                     setTimeout(() => {
+                        webBase.update();
                         expect(webBase.find('#react-arcgis-fail-text')).to.have.length(1);
                         done();
                     }, 1);

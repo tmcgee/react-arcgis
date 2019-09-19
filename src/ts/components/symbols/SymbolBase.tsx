@@ -1,4 +1,4 @@
-import { esriPromise } from 'esri-promise';
+import { loadModules } from 'esri-loader';
 import * as React from 'react';
 
 export interface SymbolProps {
@@ -8,23 +8,23 @@ export interface SymbolProps {
     symbolProperties?: {
       [propName: string]: any;
     };
-    registerSymbol?: (intance: __esri.Symbol) => any;
+    registerSymbol?: (intance?: __esri.Symbol) => any;
     onLoad?: (instance: __esri.Symbol) => any;
     onFail?: (e: any) => any;
 }
 
 interface ComponentState {
     scriptUri: string;
-    graphic: __esri.Graphic;
-    instance: __esri.Symbol;
+    graphic?: __esri.Graphic;
+    instance?: __esri.Symbol;
 }
 
 export default class Symbol extends React.Component<SymbolProps, ComponentState> {
-  constructor(props) {
+  constructor(props: SymbolProps) {
       super(props);
       this.state = {
           graphic: this.props.graphic,
-          instance: null,
+          instance: undefined,
           scriptUri: this.props.scriptUri,
       }
       this.createSymbol = this.createSymbol.bind(this);
@@ -35,13 +35,13 @@ export default class Symbol extends React.Component<SymbolProps, ComponentState>
   }
 
   public componentDidMount() {
-    esriPromise([
+    loadModules([
       this.props.scriptUri
     ]).then(([
       Symbol
     ]) => {
       this.createSymbol(Symbol);
-      if (this.props.onLoad) {
+      if (this.props.onLoad && this.state.instance) {
         this.props.onLoad(this.state.instance);
       }
     }).catch((e) => {
@@ -52,7 +52,9 @@ export default class Symbol extends React.Component<SymbolProps, ComponentState>
   }
   public componentWillUnmount() {
     if (this.state.instance) {
-      this.props.registerSymbol(null);
+      if (this.props.registerSymbol) {
+        this.props.registerSymbol();
+      }
       this.state.instance.destroy();
     }
   }
@@ -60,21 +62,30 @@ export default class Symbol extends React.Component<SymbolProps, ComponentState>
   public componentWillReceiveProps(nextProps: SymbolProps) {
       let changed = false
       if (this.props.dataFlow === 'oneWay' && this.state.instance) {
-        Object.keys(nextProps.symbolProperties).forEach((key) => {
-            if (this.props.symbolProperties[key] !== nextProps.symbolProperties[key]) {
+        if (nextProps.symbolProperties) {
+          Object.keys(nextProps.symbolProperties).forEach((key: string) => {
+            if (this.props.symbolProperties && nextProps.symbolProperties && this.state.instance) {
+              if (this.props.symbolProperties[key] !== nextProps.symbolProperties[key]) {
                 this.state.instance.set(key, nextProps.symbolProperties[key]);
                 changed = true
+              }
             }
-        });
+          });
+
+        }
       }
       if (changed) {
+        if (this.props.registerSymbol && this.state.instance) {
           this.props.registerSymbol(this.state.instance);
+        }
       }
   }
 
   private createSymbol(Symbol: __esri.SymbolConstructor) {
     const instance = new Symbol(this.props.symbolProperties);
     this.setState({ instance });
-    this.props.registerSymbol(instance);
+    if (this.props.registerSymbol) {
+        this.props.registerSymbol(instance);
+    }
   }
 };

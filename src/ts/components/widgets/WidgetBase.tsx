@@ -1,4 +1,4 @@
-import { esriPromise } from 'esri-promise';
+import { loadModules } from 'esri-loader';
 import * as React from 'react';
 
 export interface WidgetProps {
@@ -17,16 +17,16 @@ export interface WidgetProps {
 
 interface ComponentState {
   scriptUri: string;
-  map: __esri.Map;
-  view: __esri.View;
-  instance: __esri.Widget;
+  map?: __esri.Map;
+  view?: __esri.View;
+  instance?: __esri.Widget;
 }
 
 export default class Widget extends React.Component<WidgetProps, ComponentState> {
-    constructor(props) {
+    constructor(props: WidgetProps) {
         super(props);
         this.state = {
-            instance: null,
+            instance: undefined,
             map: this.props.map,
             scriptUri: this.props.scriptUri,
             view: this.props.view,
@@ -39,13 +39,13 @@ export default class Widget extends React.Component<WidgetProps, ComponentState>
     }
 
     componentDidMount() {
-      esriPromise([
+      loadModules([
         this.props.scriptUri
       ]).then(([
         Widget
       ]) => {
         this.renderWidget(Widget);
-        if (this.props.onLoad) {
+        if (this.props.onLoad && this.state.instance) {
           this.props.onLoad(this.state.instance);
         }
       }).catch((e) => {
@@ -56,7 +56,9 @@ export default class Widget extends React.Component<WidgetProps, ComponentState>
     }
 
     componentWillUnmount() {
-      this.state.view.ui.remove(this.state.instance);
+      if (this.state.view && this.state.instance) {
+        this.state.view.ui.remove(this.state.instance);
+      }
     }
 
     private renderWidget(Widget: __esri.WidgetConstructor) {
@@ -69,14 +71,20 @@ export default class Widget extends React.Component<WidgetProps, ComponentState>
         }
       });
       this.setState({ instance });
-      this.state.view.ui.add(instance, { position });
+      if (this.state.view) {
+        this.state.view.ui.add(instance, position);
+      }
     }
 
-    componentWillReceiveProps(nextProps: WidgetProps) {
-        Object.keys(nextProps.widgetProperties).forEach((key) => {
+    public componentWillReceiveProps(nextProps: WidgetProps) {
+      if (nextProps.widgetProperties) {
+        Object.keys(nextProps.widgetProperties).forEach((key: string) => {
+          if (this.state.instance && nextProps.widgetProperties) {
             if (this.state.instance.get(key) !== nextProps.widgetProperties[key]) {
-                this.state.instance.set(key, nextProps.widgetProperties[key]);
+              this.state.instance.set(key, nextProps.widgetProperties[key]);
             }
+          }
         });
+      }
     }
 };

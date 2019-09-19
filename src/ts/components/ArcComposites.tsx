@@ -1,20 +1,13 @@
-import { Promise } from 'es6-promise';
 import * as React from 'react';
 import { ArcView, BaseProps } from './ArcBase';
 
-interface MapBaseProps extends BaseProps {
-    dataFlow: 'oneWay' | 'oneTime';
+export interface MapBaseProps extends BaseProps {
     scriptUri: string[];
-    userDefinedMapProperties: __esri.MapProperties;
-    userDefinedViewProperties: __esri.MapViewProperties | __esri.SceneViewProperties;
 }
 
-interface WebBaseProps extends BaseProps {
-    dataFlow: 'oneWay' | 'oneTime';
+export interface WebBaseProps extends BaseProps {
     scriptUri: string[];
     id: string;
-    userDefinedMapProperties: __esri.MapProperties;
-    userDefinedViewProperties: __esri.MapViewProperties | __esri.SceneViewProperties;
 }
 
 const eventMap = {
@@ -41,7 +34,7 @@ export const MapBase = (props: MapBaseProps) => (
         const mapData = new Promise((resolve, reject) => {
             try {
                 const map: __esri.Map = new Map(props.mapProperties);  // Make the map
-                const viewProperties: __esri.ViewProperties | __esri.MapProperties = {
+                const viewProperties: any = {
                     map,
                     container: containerId,
                     ...props.viewProperties
@@ -55,7 +48,7 @@ export const MapBase = (props: MapBaseProps) => (
                 });
                 view.when(() => {
                     resolve({ map, view });
-                }, (err) => {
+                }, (err: Error) => {
                     reject(err);
                 });
             } catch (err) {
@@ -78,7 +71,8 @@ export const WebBase = (props: WebBaseProps) => (
                 const map: __esri.WebMap | __esri.WebScene = new WebConstructor({
                     portalItem: {
                         id: props.id
-                    }
+                    },
+                    ...props.mapProperties
                 });
                 map.load()
                     .then(() => {

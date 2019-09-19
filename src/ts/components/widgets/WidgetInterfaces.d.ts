@@ -1,5 +1,5 @@
 interface WidgetCompositeProps {
-    dataFlow?: 'oneWay' | 'oneTime'; 
+    dataFlow?: 'oneWay' | 'oneTime';
     view?: __esri.SceneView | __esri.MapView;
     position?: string;
     onLoad?: (instance: __esri.Widget) => any;
@@ -91,13 +91,6 @@ export interface TrackProps extends WidgetCompositeProps {
     widgetProperties?: __esri.TrackProperties;
     onTrack?: (e: any) => any;
     onTrackError?: (e: any) => any;
-}
-
-export interface UnivariateColorSizeSliderProps extends WidgetCompositeProps {
-    widgetProperties?: __esri.UnivariateColorSizeSliderProperties;
-    onDataChange?: (e: any) => any;
-    onDataValueChange?: (e: any) => any;
-    onHandleValueChange?: (e: any) => any;
 }
 
 export interface ZoomProps extends WidgetCompositeProps {

@@ -2,17 +2,18 @@ import * as React from 'react';
 import { BaseProps } from './ArcBase';
 import { MapBase } from './ArcComposites';
 
-interface MapProps extends BaseProps {
+export interface MapProps extends BaseProps {
+  mapProperties?: __esri.MapProperties;
   viewProperties?: __esri.MapViewProperties;
 }
 
-interface SceneProps extends BaseProps {
+export interface SceneProps extends BaseProps {
+  mapProperties?: __esri.MapProperties;
   viewProperties?: __esri.SceneViewProperties;
 }
 
 export const Map = (props: MapProps) => (
   <MapBase
-    dataFlow={props.dataFlow === 'oneWay' ? 'oneWay' : 'oneTime'}
     scriptUri={['esri/Map', 'esri/views/MapView']}
     {...props}
     mapProperties={{
@@ -24,14 +25,11 @@ export const Map = (props: MapProps) => (
       zoom: 6,
       ...props.viewProperties
     }}
-    userDefinedMapProperties={{...props.mapProperties}}
-    userDefinedViewProperties={{...props.viewProperties}}
   />
 );
 
 export const Scene = (props: SceneProps) => (
   <MapBase
-    dataFlow={props.dataFlow === 'oneWay' ? 'oneWay' : 'oneTime'}
     scriptUri={['esri/Map', 'esri/views/SceneView']}
     {...props}
     mapProperties={{
@@ -41,10 +39,8 @@ export const Scene = (props: SceneProps) => (
     }}
     viewProperties={{
       center: [-122.4443, 47.2529] as __esri.PointProperties,
-      scale: 500000,
+      zoom: 6,
       ...props.viewProperties
     }}
-    userDefinedMapProperties={{...props.mapProperties}}
-    userDefinedViewProperties={{...props.viewProperties}}
   />
 );

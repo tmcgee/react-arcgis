@@ -1,4 +1,4 @@
-import { esriPromise } from 'esri-promise';
+import { loadModules } from 'esri-loader';
 import * as React from 'react';
 
 
@@ -21,7 +21,7 @@ interface ComponentState {
 
 export default class Popup extends React.Component<PopupProps, ComponentState> {
     content: HTMLElement;
-    constructor(props) {
+    constructor(props: PopupProps) {
         super(props);
         this.state = {
             map: this.props.map,
@@ -34,7 +34,7 @@ export default class Popup extends React.Component<PopupProps, ComponentState> {
       if (this.props.children) {
         return (
           <div>
-            <div ref={ref => this.content=ref}>
+            <div ref={ref => {if (ref) this.content=ref}}>
               {this.props.children}
             </div>
           </div>
@@ -49,9 +49,11 @@ export default class Popup extends React.Component<PopupProps, ComponentState> {
               content: this.content as any,
               ...this.props.popupProperties
             }
-            this.state.view.popup.open(popupProps);
-            if (this.props.onTriggerAction) {
-              this.state.view.popup.on('trigger-action', this.props.onTriggerAction);
+            if (this.state.view) {
+                this.state.view.popup.open(popupProps);
+                if (this.props.onTriggerAction) {
+                this.state.view.popup.on('trigger-action', this.props.onTriggerAction);
+                }
             }
             this.setState({
                 mounted: true
@@ -63,17 +65,21 @@ export default class Popup extends React.Component<PopupProps, ComponentState> {
 
     public componentWillUnmount() {
         if (this.state.mounted) {
-            this.state.view.popup.close();
+            if (this.state.view) {
+                this.state.view.popup.close();
+            }
             this.setState({
                 mounted: false
             });
         }
     }
 
-    public componentWillReceiveProps(nextProps) {
+    public componentWillReceiveProps(nextProps: PopupProps) {
         if (nextProps.popupProperties && this.state.mounted && nextProps.popupProperties !== this.props.popupProperties) {
-            this.state.view.popup.close();
-            this.state.view.popup.open(nextProps.popupProperties);
+            if (this.state.view) {
+                this.state.view.popup.close();
+                this.state.view.popup.open(nextProps.popupProperties);
+            }
         }
     }
 }
