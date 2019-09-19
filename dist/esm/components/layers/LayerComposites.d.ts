@@ -1,0 +1,19 @@
+/// <reference types="arcgis-js-api" />
+/// <reference types="react" />
+import { CSVLayerProps, ElevationLayerProps, FeatureLayerProps, GeoRSSLayerProps, GraphicsLayerProps, GroupLayerProps, ImageryLayerProps, IntegratedMeshLayerProps, MapImageLayerProps, OpenStreetMapLayerProps, PointCloudLayerProps, SceneLayerProps, StreamLayerProps, TileLayerProps, VectorTileLayerProps, WebTileLayerProps } from './LayerInterfaces';
+export declare const CSVLayer: (props: CSVLayerProps) => JSX.Element;
+export declare const ElevationLayer: (props: ElevationLayerProps) => JSX.Element;
+export declare const FeatureLayer: (props: FeatureLayerProps) => JSX.Element;
+export declare const GeoRSSLayer: (props: GeoRSSLayerProps) => JSX.Element;
+export declare const GraphicsLayer: (props: GraphicsLayerProps) => JSX.Element;
+export declare const GroupLayer: (props: GroupLayerProps) => JSX.Element;
+export declare const ImageryLayer: (props: ImageryLayerProps) => JSX.Element;
+export declare const IntegratedMeshLayer: (props: IntegratedMeshLayerProps) => JSX.Element;
+export declare const MapImageLayer: (props: MapImageLayerProps) => JSX.Element;
+export declare const OpenStreetMapLayer: (props: OpenStreetMapLayerProps) => JSX.Element;
+export declare const PointCloudLayer: (props: PointCloudLayerProps) => JSX.Element;
+export declare const SceneLayer: (props: SceneLayerProps) => JSX.Element;
+export declare const StreamLayer: (props: StreamLayerProps) => JSX.Element;
+export declare const TileLayer: (props: TileLayerProps) => JSX.Element;
+export declare const VectorTileLayer: (props: VectorTileLayerProps) => JSX.Element;
+export declare const WebTileLayer: (props: WebTileLayerProps) => JSX.Element;

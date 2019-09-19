@@ -1,0 +1,21 @@
+/// <reference types="arcgis-js-api" />
+/// <reference types="react" />
+import { AttributionProps, BasemapGalleryProps, BasemapToggleProps, ColorSliderProps, CompassProps, ExpandProps, HomeProps, LayerListProps, LegendProps, LocateProps, NavigationToggleProps, PopupProps, PrintProps, ScaleBarProps, SearchProps, SizeSliderProps, TrackProps, ZoomProps } from './WidgetInterfaces';
+export declare const Attribution: (props: AttributionProps) => JSX.Element;
+export declare const BasemapGallery: (props: BasemapGalleryProps) => JSX.Element;
+export declare const BasemapToggle: (props: BasemapToggleProps) => JSX.Element;
+export declare const ColorSlider: (props: ColorSliderProps) => JSX.Element;
+export declare const Compass: (props: CompassProps) => JSX.Element;
+export declare const Expand: (props: ExpandProps) => JSX.Element;
+export declare const Home: (props: HomeProps) => JSX.Element;
+export declare const LayerList: (props: LayerListProps) => JSX.Element;
+export declare const Legend: (props: LegendProps) => JSX.Element;
+export declare const Locate: (props: LocateProps) => JSX.Element;
+export declare const NavigationToggle: (props: NavigationToggleProps) => JSX.Element;
+export declare const Popup: (props: PopupProps) => JSX.Element;
+export declare const Print: (props: PrintProps) => JSX.Element;
+export declare const ScaleBar: (props: ScaleBarProps) => JSX.Element;
+export declare const Search: (props: SearchProps) => JSX.Element;
+export declare const SizeSlider: (props: SizeSliderProps) => JSX.Element;
+export declare const Track: (props: TrackProps) => JSX.Element;
+export declare const Zoom: (props: ZoomProps) => JSX.Element;
