@@ -6,7 +6,7 @@
   "description": "React component library for the ArcGIS API for JavaScript",
   "dependencies": {
     "@types/arcgis-js-api": "4.12.0",
-    "esri-loader": "2.10.0",
+    "esri-loader": "2.16.0",
     "react": "^15.6.1",
     "react-dom": "^15.6.1"
   },
